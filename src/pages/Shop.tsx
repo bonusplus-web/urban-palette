@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -9,72 +9,51 @@ import productJacket from "@/assets/product-jacket.jpg";
 import productSneakers from "@/assets/product-sneakers.jpg";
 import productTshirt from "@/assets/product-tshirt.jpg";
 
-const allProducts = [
-  {
-    id: "1",
-    name: "Urban Oversized Hoodie",
-    price: 89,
-    image: productHoodie,
-    category: "Hoodies",
-    colors: ["#8B7355", "#2C2C2C", "#F5F5DC"]
-  },
-  {
-    id: "2",
-    name: "Contemporary Denim Jacket",
-    price: 129,
-    image: productJacket,
-    category: "Jackets",
-    colors: ["#4A5568", "#2D3748", "#E2E8F0"]
-  },
-  {
-    id: "3",
-    name: "Minimalist Sneakers",
-    price: 159,
-    image: productSneakers,
-    category: "Footwear",
-    colors: ["#FFFFFF", "#000000", "#A0A0A0"]
-  },
-  {
-    id: "4",
-    name: "Essential Tee",
-    price: 45,
-    image: productTshirt,
-    category: "T-Shirts",
-    colors: ["#F7FAFC", "#2D3748", "#8B7355"]
-  },
-  // Duplicate products for demo
-  {
-    id: "5",
-    name: "Urban Oversized Hoodie",
-    price: 89,
-    image: productHoodie,
-    category: "Hoodies",
-    colors: ["#8B7355", "#2C2C2C", "#F5F5DC"]
-  },
-  {
-    id: "6",
-    name: "Contemporary Denim Jacket",
-    price: 129,
-    image: productJacket,
-    category: "Jackets",
-    colors: ["#4A5568", "#2D3748", "#E2E8F0"]
-  }
-];
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  colors: string[];
+}
+
+const imageMap: Record<string, string> = {
+  "product-hoodie.jpg": productHoodie,
+  "product-jacket.jpg": productJacket,
+  "product-sneakers.jpg": productSneakers,
+  "product-tshirt.jpg": productTshirt,
+};
 
 const categories = ["All", "Hoodies", "Jackets", "T-Shirts", "Footwear"];
 
 const Shop = () => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const filteredProducts = allProducts.filter(product => {
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) =>
+        setProducts(
+          data.map((p: Product) => ({ ...p, image: imageMap[p.image] }))
+        )
+      )
+      .catch((err) => console.error("Failed to load products", err));
+  }, []);
+
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      selectedCategory === "All" || product.category === selectedCategory;
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const handleAddToCloset = (product: any) => {
+  const handleAddToCloset = (product: Product) => {
     console.log("Added to closet:", product);
   };
 
